@@ -7,6 +7,7 @@ from typing import Dict, Any, List, Optional
 from langgraph.graph import StateGraph, END
 
 from utils.bazi_states import BaziAnalysisState, BaziDebateState
+from utils.memory import BaziAnalysisMemory
 from bazi_agents import *
 
 
@@ -67,27 +68,41 @@ class BaziAnalysisGraph:
 
     def _create_llm(self):
         """Create LLM client."""
+        import os
+
         # Import here to avoid issues if dependencies are not available
         try:
             from langchain_openai import ChatOpenAI
 
             if self.llm_provider == "siliconflow":
+                api_key = os.environ.get("SILICONFLOW_API_KEY") or os.environ.get("OPENAI_API_KEY")
+                if not api_key:
+                    raise ValueError("SILICONFLOW_API_KEY or OPENAI_API_KEY environment variable is required")
                 return ChatOpenAI(
                     model=self.llm_model,
                     base_url=self.base_url or "https://api.siliconflow.cn/v1",
                     temperature=0.7,
+                    api_key=api_key,
                 )
             elif self.llm_provider == "openai":
+                api_key = os.environ.get("OPENAI_API_KEY")
+                if not api_key:
+                    raise ValueError("OPENAI_API_KEY environment variable is required")
                 return ChatOpenAI(
                     model=self.llm_model,
                     temperature=0.7,
+                    api_key=api_key,
                 )
             elif self.llm_provider == "anthropic":
                 from langchain_anthropic import ChatAnthropic
 
+                api_key = os.environ.get("ANTHROPIC_API_KEY")
+                if not api_key:
+                    raise ValueError("ANTHROPIC_API_KEY environment variable is required")
                 return ChatAnthropic(
                     model=self.llm_model,
                     temperature=0.7,
+                    api_key=api_key,
                 )
             else:
                 raise ValueError(f"Unknown LLM provider: {self.llm_provider}")

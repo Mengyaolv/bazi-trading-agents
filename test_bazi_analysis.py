@@ -23,16 +23,53 @@ def test_bazi_analysis():
     print("=" * 60)
     print()
 
+    # Check for API key
+    api_key = os.environ.get("SILICONFLOW_API_KEY") or os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        print("错误: 未找到API密钥")
+        print("请设置以下环境变量之一:")
+        print("  export SILICONFLOW_API_KEY=your_key")
+        print("  或")
+        print("  export OPENAI_API_KEY=your_key")
+        print()
+        return False
+
+    # Determine provider and model
+    if os.environ.get("SILICONFLOW_API_KEY"):
+        llm_provider = "siliconflow"
+        llm_model = "deepseek-ai/DeepSeek-V3"
+        base_url = "https://api.siliconflow.cn/v1"
+    elif os.environ.get("OPENAI_API_KEY"):
+        llm_provider = "openai"
+        llm_model = "gpt-4"
+        base_url = None
+    else:
+        print("错误: 无法确定LLM提供商")
+        return False
+
     # Initialize the graph
     print("正在初始化八字分析图...")
-    graph = BaziAnalysisGraph(
-        llm_provider="siliconflow",
-        llm_model="deepseek-ai/DeepSeek-V3",
-        base_url="https://api.siliconflow.cn/v1",
-        debug=True,
-    )
-    print("初始化完成！")
+    print(f"  提供商: {llm_provider}")
+    print(f"  模型: {llm_model}")
+    if base_url:
+        print(f"  API地址: {base_url}")
     print()
+
+    try:
+        graph = BaziAnalysisGraph(
+            llm_provider=llm_provider,
+            llm_model=llm_model,
+            base_url=base_url,
+            debug=True,
+        )
+        print("初始化完成！")
+        print()
+    except Exception as e:
+        print(f"初始化失败: {e}")
+        import traceback
+
+        traceback.print_exc()
+        return False
 
     # Test with user's birth chart (from memory)
     birth_info = "1990年9月5日8:00，男，农历七月十七日辰时，海南万宁"
