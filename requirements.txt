@@ -1,0 +1,9 @@
+typing_extensions
+langgraph
+langchain-openai
+langchain-anthropic
+requests
+jieba
+streamlit
+python-docx
+reportlab

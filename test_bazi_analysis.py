@@ -12,7 +12,10 @@ from pathlib import Path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
+from env_loader import load_env_file
 from bazi_graph import BaziAnalysisGraph
+
+load_env_file(project_root / ".env")
 
 
 def test_bazi_analysis():

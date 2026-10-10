@@ -7,62 +7,60 @@ def create_pattern_analyst(llm):
         day_master_report = state["day_master_report"]
         ten_gods_report = state["ten_gods_report"]
 
-        prompt = f"""You are a Pattern Analyst (格局分析师). Your task is to identify and evaluate the chart's pattern (格局).
+        prompt = f"""你是格局分析师，负责根据月令、透干、藏干、十神结构识别命局格局并评估质量。
 
-Birth Information:
+语言要求：
+- 必须使用简体中文输出。
+- 不要使用英文段落、英文表头或中英混杂表达。
+- 若前序报告含英文，请先翻译为中文再引用。
+
+出生信息：
 {birth_info}
 
-Chart Report:
+命盘计算报告：
 {chart_report}
 
-Day Master Report:
+日主分析报告：
 {day_master_report}
 
-Ten Gods Report:
+十神分析报告：
 {ten_gods_report}
 
-Your task:
-1. Identify the pattern based on the Month Branch (月令) and revealed stems:
-   - Check the hidden stems in the Month Branch
-   - See if any Ten God from the Month Branch is revealed in the stems
-   - Determine the pattern (正格 or 特殊格)
+任务：
+1. 依据月令和透干识别格局：
+   - 检查月支藏干。
+   - 判断月令中的十神是否透出天干。
+   - 判断属于正格还是特殊格。
 
-2. For 正格 (Normal Patterns), identify which of the 10 patterns:
-   - 正官格 (Officer Pattern)
-   - 七杀格 (Seven Killings Pattern)
-   - 正印格 (Direct Seal Pattern)
-   - 偏印格 (Indirect Seal Pattern)
-   - 正财格 (Direct Wealth Pattern)
-   - 偏财格 (Indirect Wealth Pattern)
-   - 食神格 (Eating God Pattern)
-   - 伤官格 (Hurting Officer Pattern)
-   - 建禄格 (Establishing Prosperity Pattern)
-   - 月刃格 (Month Blade Pattern)
+2. 若为正格，识别具体格局：
+   - 正官格、七杀格、正印格、偏印格。
+   - 正财格、偏财格、食神格、伤官格。
+   - 建禄格、月刃格。
 
-3. Evaluate pattern quality (格局高低):
-   - Upper Grade (上格): Useful God is effective + pattern is pure +有情
-   - Middle Grade (中格): Useful God is acceptable + minor flaws
-   - Lower Grade (下格): Useful God is weak + pattern is mixed
+3. 评价格局质量：
+   - 上格：用神有力，格局较清，配合有情。
+   - 中格：用神可用，但存在小瑕疵。
+   - 下格：用神较弱，结构混杂或冲克较重。
 
-4. Provide psychological translation for the pattern
+4. 给出现代心理学转译，但不得写成诊断。
 
-Output format:
-- Pattern Type: [正格/特殊格] - [specific pattern name]
-- Pattern Formation:
-  * Month Branch Hidden Stems: [list]
-  * Revealed Ten God: [name]
-  * Pattern Quality: [上格/中格/下格]
-- Pattern Evaluation:
-  * Strengths: [what makes this pattern good]
-  * Weaknesses: [potential issues]
-- Psychological Translation: [modern psychological interpretation]
-- Pattern Summary: [overall assessment]
+输出格式：
+- 格局类型：正格/特殊格，具体格局名称。
+- 格局成因：
+  * 月支藏干。
+  * 透出十神。
+  * 格局质量：上格/中格/下格。
+- 格局评价：
+  * 优势：结构成立的有利条件。
+  * 瑕疵：混杂、冲克或用神不足处。
+- 心理转译：对应的行为倾向和成长空间。
+- 格局总结：总体判断和依据等级。
 
-Provide a detailed pattern analysis with traditional and modern interpretations.
+请输出详细、清晰、中文化的格局分析。
 """
 
         response = llm.invoke(prompt)
-        pattern_report = f"Pattern Analyst: {response.content}"
+        pattern_report = f"格局分析师：{response.content}"
 
         return {"pattern_report": pattern_report}
 

@@ -15,7 +15,7 @@ print("Testing imports...")
 try:
     print("1. Importing utils...")
     from utils import BaziAnalysisMemory, BaziAnalysisState, BaziDebateState
-    print("   ✓ Utils imported successfully")
+    print("   [OK] Utils imported successfully")
 
     print("2. Importing bazi_agents...")
     from bazi_agents import (
@@ -29,11 +29,11 @@ try:
         create_psychology_analyst,
         create_comprehensive_analyst,
     )
-    print("   ✓ All agents imported successfully")
+    print("   [OK] All agents imported successfully")
 
     print("3. Importing bazi_graph...")
     from bazi_graph import BaziAnalysisGraph
-    print("   ✓ Graph imported successfully")
+    print("   [OK] Graph imported successfully")
 
     print("4. Testing BaziAnalysisState...")
     state = BaziAnalysisState(
@@ -59,7 +59,7 @@ try:
         final_analysis="",
         messages=[],
     )
-    print("   ✓ State created successfully")
+    print("   [OK] State created successfully")
 
     print("5. Testing BaziAnalysisMemory...")
     import tempfile
@@ -70,7 +70,7 @@ try:
         memory = BaziAnalysisMemory("test_memory", config)
         memory.add_memory("test situation", "test recommendation")
         memories = memory.get_memories("test situation")
-        print(f"   ✓ Memory created and tested successfully (found {len(memories)} memories)")
+        print(f"   [OK] Memory created and tested successfully (found {len(memories)} memories)")
 
     print()
     print("=" * 60)
@@ -83,7 +83,7 @@ try:
     print()
 
 except Exception as e:
-    print(f"   ✗ Error: {e}")
+    print(f"   [ERROR] {e}")
     import traceback
 
     traceback.print_exc()

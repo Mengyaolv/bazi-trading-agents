@@ -28,6 +28,7 @@ cp .env.example .env
 编辑 `.env` 文件，配置你的LLM提供商：
 
 #### 使用SiliconFlow（推荐，国内访问快）
+
 ```env
 LLM_PROVIDER=siliconflow
 LLM_MODEL=deepseek-ai/DeepSeek-V3
@@ -36,6 +37,7 @@ SILICONFLOW_API_KEY=your_api_key_here
 ```
 
 #### 使用OpenAI
+
 ```env
 LLM_PROVIDER=openai
 LLM_MODEL=gpt-4
@@ -43,6 +45,7 @@ OPENAI_API_KEY=your_api_key_here
 ```
 
 #### 使用Anthropic
+
 ```env
 LLM_PROVIDER=anthropic
 LLM_MODEL=claude-3-opus-20240229
@@ -60,6 +63,7 @@ python3 test_bazi_analysis.py
 ### 5. 查看结果
 
 分析结果会：
+
 1. 在终端输出
 2. 保存到 `results/test_analysis_output.txt`
 3. 保存详细状态到 `results/bazi_analysis_*.json`
@@ -151,6 +155,7 @@ print("心理学分析师观点:", final_state["bazi_debate_state"]["psychology_
 ### Q: 分析需要多长时间？
 
 取决于：
+
 - LLM提供商的响应速度
 - 网络连接
 - 辩论轮数（默认3轮）
@@ -186,6 +191,7 @@ memory.clear_old_memories(days=30)  # 清理30天前的记忆
 ## 获取帮助
 
 如果遇到问题：
+
 1. 检查 `.env` 文件配置是否正确
 2. 确认API密钥有效
 3. 检查网络连接

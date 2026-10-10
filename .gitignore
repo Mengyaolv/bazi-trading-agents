@@ -39,8 +39,10 @@ ENV/
 # Memory and results
 memory/
 results/
+data/
 *.json
 *.txt
+!requirements.txt
 
 # OS
 .DS_Store

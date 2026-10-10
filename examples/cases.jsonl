@@ -1,0 +1,5 @@
+{"id":"standard_male","birth_info":"1990-09-05 08:00 男 海南万宁","case_type":"常规男命","expected_focus":["命盘摘要","传统命理分析","行动建议","风险与边界"]}
+{"id":"standard_female","birth_info":"1992-03-18 14:30 女 上海","case_type":"常规女命","expected_focus":["命盘摘要","现代心理学转译","当前阶段策略","风险与边界"]}
+{"id":"strong_day_master","birth_info":"1988-11-12 09:00 男 北京","case_type":"身强","expected_focus":["日主强弱","用神","行动建议"]}
+{"id":"weak_day_master","birth_info":"1995-06-21 22:10 女 广州","case_type":"身弱","expected_focus":["日主强弱","扶抑","风险与边界"]}
+{"id":"luck_cycle_clash","birth_info":"1985-12-03 06:45 男 成都","case_type":"大运冲突明显","expected_focus":["大运","当前阶段策略","谨慎方向","风险与边界"]}

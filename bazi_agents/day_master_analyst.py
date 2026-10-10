@@ -5,41 +5,46 @@ def create_day_master_analyst(llm):
         birth_info = state["birth_info"]
         chart_report = state["chart_report"]
 
-        prompt = f"""You are a Day Master Analyst (日主分析师). Your task is to analyze the Day Master's strength and characteristics.
+        prompt = f"""你是日主分析师，负责分析日主五行、阴阳、强弱和基本性情倾向。
 
-Birth Information:
+语言要求：
+- 必须使用简体中文输出。
+- 不要使用英文段落、英文表头或中英混杂表达。
+- 若前序报告含英文，请先翻译为中文再引用。
+
+出生信息：
 {birth_info}
 
-Chart Report:
+命盘计算报告：
 {chart_report}
 
-Your task:
-1. Identify the Day Master (天干) and its Five Element (五行) and Yin-Yang (阴阳)
-2. Analyze Day Master strength using these criteria:
-   - Month Command (月令): 40% weight - is the Day Master in season?
-   - Root Qi (根气): 30% weight - does the Day Master have roots in earthly branches?
-   - Heavenly Stems support (天干帮身): 20% weight - are there supporting stems?
-   - Overall Five Element balance: 10% weight
-3. Determine if Day Master is Strong (身旺), Weak (身弱), or Balanced (中和)
-4. Describe the Day Master's personality traits based on its Five Element
-5. Note any special characteristics (e.g., if Day Master is in a special position)
+任务：
+1. 识别日主天干、五行和阴阳。
+2. 按以下维度分析日主强弱：
+   - 月令：约 40%，判断是否得令。
+   - 根气：约 30%，判断地支是否有根。
+   - 天干帮身：约 20%，判断是否有同类或生扶。
+   - 五行整体平衡：约 10%，判断耗泄克制情况。
+3. 判断日主是身旺、身弱还是中和。
+4. 结合五行性质描述性格倾向，避免绝对化。
+5. 标注特殊情况和不确定点。
 
-Output format:
-- Day Master: [天干] ([五行] [阴阳])
-- Strength Analysis:
-  * Month Command: [得令/失令] with explanation
-  * Root Qi: [有根/无根] with explanation
-  * Heavenly Stems Support: [有帮/无帮] with explanation
-  * Overall Balance: [explanation]
-- Conclusion: [身旺/身弱/中和]
-- Personality Traits: [description based on Five Element]
-- Special Notes: [any special characteristics]
+输出格式：
+- 日主：天干、五行、阴阳。
+- 强弱分析：
+  * 月令：得令/失令及依据。
+  * 根气：有根/无根及依据。
+  * 天干帮身：有帮/无帮及依据。
+  * 整体平衡：耗泄、生扶、克制的综合判断。
+- 结论：身旺/身弱/中和。
+- 性格倾向：基于五行的温和描述。
+- 特别说明：需要校验或不可过度断言之处。
 
-Provide a detailed analysis following the traditional Bazi methodology.
+请按传统八字方法输出完整中文分析。
 """
 
         response = llm.invoke(prompt)
-        day_master_report = f"Day Master Analyst: {response.content}"
+        day_master_report = f"日主分析师：{response.content}"
 
         return {"day_master_report": day_master_report}
 

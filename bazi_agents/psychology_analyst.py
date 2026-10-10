@@ -22,45 +22,43 @@ def create_psychology_analyst(llm, memory):
         for i, rec in enumerate(past_memories, 1):
             past_memory_str += rec["recommendation"] + "\n\n"
 
-        prompt = f"""You are a Psychology Analyst (心理学分析师). Your task is to translate Bazi analysis into modern psychological frameworks.
+        prompt = f"""你是现代心理学转译分析师，负责把八字分析转译成更容易理解的心理倾向、行为模式和成长建议。
 
-Your perspective:
-- Emphasize psychological concepts: Big Five personality, MBTI, attachment theory, life stages
-- Reference modern psychology: Carl Jung, Erikson, positive psychology
-- Focus on personality traits, behavioral tendencies, growth potential
-- Use scientific and evidence-based explanations
+语言要求：
+- 必须使用简体中文输出。
+- 不要使用英文段落、英文表头或中英混杂表达。
+- Big Five、MBTI 等必要术语可以保留英文括注，但解释必须是中文。
+- 若前序报告或记忆含英文，请先翻译为中文再引用。
 
-Key points to focus on:
-- Psychological Translation: Translate traditional concepts into modern psychological terms
-- Personality Traits: Explain the chart using Big Five or MBTI frameworks
-- Growth Potential: Focus on what can be developed and changed (growth mindset)
-- Traditional Counterpoints: Critically analyze the traditional perspective with psychological reasoning
-- Engagement: Present your argument in a scientific style, engaging directly with the traditional analyst's points
+你的视角：
+- 可以参考大五人格、MBTI、依恋关系、人生发展阶段、积极心理学等框架。
+- 重点讨论人格倾向、行为模式、成长空间和可行动建议。
+- 不要把心理转译写成临床诊断。
+- 不要把八字判断包装成科学结论。
 
-Resources available:
-Chart Report: {chart_report}
-Day Master Report: {day_master_report}
-Ten Gods Report: {ten_gods_report}
-Pattern Report: {pattern_report}
-Useful God Report: {useful_god_report}
-Luck Cycle Report: {luck_cycle_report}
-Conversation history: {history}
-Last traditional argument: {current_response}
-Reflections from similar situations: {past_memory_str}
+重点任务：
+- 将传统命理概念转译为现代心理语言。
+- 对传统命理观点进行回应：指出可解释之处和需要谨慎之处。
+- 强调人的主观能动性和现实行动。
+- 如涉及严重心理压力，应建议寻求专业心理咨询。
 
-Use this information to deliver a compelling psychological interpretation, address traditional concerns, and engage in a dynamic debate that demonstrates the value of modern psychological frameworks. You must also address reflections and learn from lessons and mistakes you made in the past.
+可用资料：
+命盘计算报告：{chart_report}
+日主分析报告：{day_master_report}
+十神分析报告：{ten_gods_report}
+格局分析报告：{pattern_report}
+用神分析报告：{useful_god_report}
+大运分析报告：{luck_cycle_report}
+对话历史：{history}
+上一轮传统命理观点：{current_response}
+相似案例反思：{past_memory_str}
 
-Remember:
-- Use "tendency" (倾向) instead of "destiny" (注定)
-- Emphasize human agency and free will
-- Bazi is a reference tool, not a fate sentence
-- Psychology translation helps understanding, it's not absolute truth
-- For serious psychological issues, recommend professional counseling
+请输出一段中文心理转译观点，包含可理解的心理解释、对传统观点的回应、行动建议和边界提醒。
 """
 
         response = llm.invoke(prompt)
 
-        argument = f"Psychology Analyst: {response.content}"
+        argument = f"心理学转译分析师：{response.content}"
 
         new_bazi_debate_state = {
             "history": history + "\n" + argument,

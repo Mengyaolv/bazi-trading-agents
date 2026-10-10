@@ -1,14 +1,17 @@
 import os
 from pathlib import Path
 import json
-from datetime import date
-from typing import Dict, Any, List, Optional
+from typing import Callable, Dict, Any, List, Optional
 
 from langgraph.graph import StateGraph, END
 
 from utils.bazi_states import BaziAnalysisState, BaziDebateState
 from utils.memory import BaziAnalysisMemory
+from utils.quality import build_rewrite_prompt, evaluate_analysis_quality, should_rewrite
+from utils.time_utils import current_analysis_date, normalize_analysis_datetime
+from utils.visualization import build_visualization_data
 from bazi_agents import *
+from env_loader import load_env_file
 
 
 class BaziAnalysisGraph:
@@ -21,6 +24,7 @@ class BaziAnalysisGraph:
         llm_provider: str = "siliconflow",
         llm_model: str = "deepseek-ai/DeepSeek-V3",
         base_url: str = None,
+        api_key: str = None,
     ):
         """Initialize the Bazi analysis graph and components.
 
@@ -32,10 +36,13 @@ class BaziAnalysisGraph:
             base_url: Base URL for LLM API
         """
         self.debug = debug
+        load_env_file()
+
         self.config = config or self._get_default_config()
         self.llm_provider = llm_provider
         self.llm_model = llm_model
         self.base_url = base_url
+        self.api_key = api_key
 
         # Create necessary directories
         os.makedirs(self.config["memory_dir"], exist_ok=True)
@@ -64,6 +71,10 @@ class BaziAnalysisGraph:
             "memory_dir": "./memory",
             "results_dir": "./results",
             "max_debate_rounds": 3,
+            "prompt_version": os.environ.get("PROMPT_VERSION", "phase2-prompt-v1"),
+            "quality_min_score": float(os.environ.get("QUALITY_MIN_SCORE", "70")),
+            "quality_rewrite_enabled": os.environ.get("QUALITY_REWRITE_ENABLED", "false"),
+            "quality_llm_judge_enabled": os.environ.get("QUALITY_LLM_JUDGE_ENABLED", "false"),
         }
 
     def _create_llm(self):
@@ -75,7 +86,7 @@ class BaziAnalysisGraph:
             from langchain_openai import ChatOpenAI
 
             if self.llm_provider == "siliconflow":
-                api_key = os.environ.get("SILICONFLOW_API_KEY") or os.environ.get("OPENAI_API_KEY")
+                api_key = self.api_key or os.environ.get("SILICONFLOW_API_KEY") or os.environ.get("OPENAI_API_KEY")
                 if not api_key:
                     raise ValueError("SILICONFLOW_API_KEY or OPENAI_API_KEY environment variable is required")
                 return ChatOpenAI(
@@ -85,7 +96,7 @@ class BaziAnalysisGraph:
                     api_key=api_key,
                 )
             elif self.llm_provider == "openai":
-                api_key = os.environ.get("OPENAI_API_KEY")
+                api_key = self.api_key or os.environ.get("OPENAI_API_KEY")
                 if not api_key:
                     raise ValueError("OPENAI_API_KEY environment variable is required")
                 return ChatOpenAI(
@@ -96,7 +107,7 @@ class BaziAnalysisGraph:
             elif self.llm_provider == "anthropic":
                 from langchain_anthropic import ChatAnthropic
 
-                api_key = os.environ.get("ANTHROPIC_API_KEY")
+                api_key = self.api_key or os.environ.get("ANTHROPIC_API_KEY")
                 if not api_key:
                     raise ValueError("ANTHROPIC_API_KEY environment variable is required")
                 return ChatAnthropic(
@@ -171,23 +182,35 @@ class BaziAnalysisGraph:
         else:
             return "continue"
 
-    def analyze(self, birth_info: str, analysis_date: str = None):
+    def analyze(
+        self,
+        birth_info: str,
+        analysis_date: str = None,
+        analysis_datetime: str = None,
+        progress_callback: Optional[Callable[[str, str, dict], None]] = None,
+        case_metadata: Optional[Dict[str, Any]] = None,
+    ):
         """Run the Bazi analysis.
 
         Args:
             birth_info: Birth information (year, month, day, hour, gender)
             analysis_date: Date of analysis (default: today)
+            analysis_datetime: Current analysis timestamp (default: now)
+            progress_callback: Optional callback receiving stage, message, state
+            case_metadata: Optional metadata stored with the result log
 
         Returns:
             Tuple of (final_state, final_analysis)
         """
         if analysis_date is None:
-            analysis_date = date.today().isoformat()
+            analysis_date = current_analysis_date()
+        analysis_datetime = normalize_analysis_datetime(analysis_date, analysis_datetime)
 
         # Initialize state
         init_state = {
             "birth_info": birth_info,
             "analysis_date": analysis_date,
+            "analysis_datetime": analysis_datetime,
             "sender": "user",
             "chart_report": "",
             "day_master_report": "",
@@ -210,33 +233,111 @@ class BaziAnalysisGraph:
         }
 
         # Run the graph
-        if self.debug:
-            # Debug mode with tracing
+        if self.debug or progress_callback is not None:
+            # Debug mode with tracing. Use full state snapshots instead of node updates
+            # so the final state still contains fields such as chart_report.
             trace = []
-            for chunk in self.graph.stream(init_state):
+            emitted_stages = set()
+            for chunk in self.graph.stream(init_state, stream_mode="values"):
                 if self.debug:
                     print(f"Node: {chunk}")
+                self._emit_progress(progress_callback, chunk, emitted_stages)
                 trace.append(chunk)
 
-            final_state = trace[-1]
+            final_state = trace[-1] if trace else init_state
         else:
             # Standard mode
             final_state = self.graph.invoke(init_state)
 
         # Store current state
+        final_state = self._attach_quality_report(final_state)
+        final_state["visualization_data"] = build_visualization_data(final_state)
         self.curr_state = final_state
 
         # Log state
-        self._log_state(birth_info, analysis_date, final_state)
+        self._log_state(birth_info, analysis_date, analysis_datetime, final_state, case_metadata)
 
         # Return final state and analysis
         return final_state, final_state["final_analysis"]
 
-    def _log_state(self, birth_info: str, analysis_date: str, final_state: dict):
+    def _emit_progress(self, progress_callback, state: dict, emitted_stages: set):
+        """Emit coarse-grained progress updates for UI callers."""
+        if progress_callback is None:
+            return
+
+        stage_checks = [
+            ("chart_report", "排盘", "命盘计算完成"),
+            ("day_master_report", "日主分析", "日主分析完成"),
+            ("ten_gods_report", "十神分析", "十神分析完成"),
+            ("pattern_report", "格局分析", "格局分析完成"),
+            ("useful_god_report", "用神分析", "用神分析完成"),
+            ("luck_cycle_report", "大运分析", "大运分析完成"),
+            ("final_analysis", "综合分析", "综合分析完成"),
+        ]
+        for field, stage, message in stage_checks:
+            if state.get(field) and stage not in emitted_stages:
+                progress_callback(stage, message, state)
+                emitted_stages.add(stage)
+
+        debate_state = state.get("bazi_debate_state") or {}
+        debate_count = debate_state.get("count", 0)
+        debate_stage = f"传统/心理辩论-{debate_count}"
+        if debate_count and debate_stage not in emitted_stages:
+            progress_callback("传统/心理辩论", f"辩论轮次更新: {debate_count}", state)
+            emitted_stages.add(debate_stage)
+
+    def _attach_quality_report(self, final_state: dict) -> dict:
+        """Evaluate final analysis quality and optionally trigger one rewrite."""
+        quality_report = evaluate_analysis_quality(
+            final_state.get("final_analysis", ""),
+            final_state,
+            self.config,
+        )
+        final_state["quality_report"] = quality_report
+
+        if not should_rewrite(quality_report, self.config):
+            return final_state
+
+        try:
+            rewrite_prompt = build_rewrite_prompt(
+                final_state.get("final_analysis", ""),
+                quality_report,
+            )
+            response = self.llm.invoke(rewrite_prompt)
+            final_state["final_analysis"] = response.content
+            final_state["quality_report"] = evaluate_analysis_quality(
+                final_state.get("final_analysis", ""),
+                final_state,
+                self.config,
+            )
+            final_state["quality_report"]["rewrite_triggered"] = True
+        except Exception as exc:
+            final_state["quality_report"]["rewrite_triggered"] = False
+            final_state["quality_report"]["rewrite_error"] = "模型重写失败"
+        return final_state
+
+    def _log_state(
+        self,
+        birth_info: str,
+        analysis_date: str,
+        analysis_datetime: str,
+        final_state: dict,
+        case_metadata: Optional[Dict[str, Any]] = None,
+    ):
         """Log the final state to a JSON file."""
+        case_metadata = case_metadata or {}
         log_data = {
             "birth_info": birth_info,
             "analysis_date": analysis_date,
+            "analysis_datetime": analysis_datetime,
+            "user_id": case_metadata.get("user_id", ""),
+            "username": case_metadata.get("username", ""),
+            "focus_topics": case_metadata.get("focus_topics", []),
+            "display_name": case_metadata.get("display_name", ""),
+            "allow_record": case_metadata.get("allow_record", True),
+            "prompt_version": self.config.get("prompt_version", "phase2-prompt-v1"),
+            "llm_provider": self.llm_provider,
+            "llm_model": self.llm_model,
             "chart_report": final_state["chart_report"],
             "day_master_report": final_state["day_master_report"],
             "ten_gods_report": final_state["ten_gods_report"],
@@ -254,6 +355,8 @@ class BaziAnalysisGraph:
                 "count": final_state["bazi_debate_state"]["count"],
             },
             "final_analysis": final_state["final_analysis"],
+            "quality_report": final_state.get("quality_report"),
+            "visualization_data": final_state.get("visualization_data"),
         }
 
         # Save to file

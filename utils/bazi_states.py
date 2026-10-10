@@ -22,6 +22,7 @@ class BaziAnalysisState(MessagesState):
     # 输入信息
     birth_info: Annotated[str, "Birth information (year, month, day, hour, gender)"]
     analysis_date: Annotated[str, "Date of analysis"]
+    analysis_datetime: Annotated[str, "Current analysis datetime"]
 
     sender: Annotated[str, "Agent that sent this message"]
 

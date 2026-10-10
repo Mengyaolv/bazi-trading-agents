@@ -7,76 +7,77 @@ def create_luck_cycle_analyst(llm):
         day_master_report = state["day_master_report"]
         useful_god_report = state["useful_god_report"]
 
-        prompt = f"""You are a Luck Cycle Analyst (大运分析师). Your task is to analyze the Luck Cycles (大运) and their impact on the chart.
+        prompt = f"""你是大运分析师，负责分析每步大运与原局的关系、当前阶段主题和行动策略。
 
-Birth Information:
+语言要求：
+- 必须使用简体中文输出。
+- 不要使用英文段落、英文表头或中英混杂表达。
+- 若前序报告含英文，请先翻译为中文再引用。
+
+出生信息：
 {birth_info}
 
-Chart Report:
+命盘计算报告：
 {chart_report}
 
-Day Master Report:
+日主分析报告：
 {day_master_report}
 
-Useful God Report:
+用神分析报告：
 {useful_god_report}
 
-Your task:
-1. Analyze each Luck Cycle pillar:
-   - Identify the Ten God of each pillar
-   - Determine if it's favorable (喜) or unfavorable (忌) to the original chart
-   - Note any interactions with the original chart (刑冲合害)
+任务：
+1. 分析每步大运：
+   - 判断大运干支对应的十神。
+   - 判断对原局是偏喜、偏忌还是中性。
+   - 标注与原局的刑冲合害、合化、生克关系。
 
-2. Map Luck Cycles to life stages with psychological translation:
+2. 将大运映射到人生阶段，并做现代心理转译：
 
-   Age 0-15 (少年运 - Youth):
-   - Attachment + Self-identity formation
-   - Family environment shaping
-   - What this Luck Cycle means for early development
+   0-15 岁：少年阶段
+   - 家庭环境、依恋关系、自我认同萌芽。
+   - 说明该阶段大运对早期发展的倾向。
 
-   Age 15-30 (青年运 - Young Adult):
-   - Exploration + Establishment
-   - Education/Career/Relationship beginnings
-   - What this Luck Cycle means for early adulthood
+   15-30 岁：青年阶段
+   - 学业、职业探索、关系建立和身份确认。
+   - 说明该阶段大运对探索和立足的影响。
 
-   Age 30-45 (壮年运 - Prime Adult):
-   - Struggle + Achievement
-   - Career peak/Family responsibilities
-   - What this Luck Cycle means for prime years
+   30-45 岁：壮年阶段
+   - 事业承担、资源整合、家庭责任和成就压力。
+   - 说明该阶段大运的机会与挑战。
 
-   Age 45-60 (中年运 - Middle Age):
-   - Transition + Integration
-   - Career adjustment/Meaning seeking
-   - What this Luck Cycle means for middle age
+   45-60 岁：中年阶段
+   - 转型、整合、意义感和生活结构调整。
+   - 说明该阶段大运的调整方向。
 
-   Age 60+ (晚年运 - Late Life):
-   - Wisdom + Transcendence
-   - Legacy/Enjoyment/Reflection
-   - What this Luck Cycle means for later years
+   60 岁以后：晚年阶段
+   - 经验沉淀、传承、生活节奏和身心照顾。
+   - 说明该阶段大运的稳定与回顾主题。
 
-3. Identify current life stage and Luck Cycle
-4. Provide strategic advice for the current period
+3. 识别当前所处大运和人生阶段。
+4. 给出当前阶段的策略建议。
 
-Output format:
-- Luck Cycle Analysis:
-  * [Age range]: [Pillar] - [Ten God] - [Favorable/Unfavorable] - [Interactions]
-- Current Life Stage:
-  * Age: [current age]
-  * Luck Cycle: [current pillar]
-  * Stage Theme: [psychological theme]
-  * Is it Favorable: [Yes/No] - [explanation]
-- Life Stage Mapping:
-  * [Age range]: [traditional name] - [psychological stage] - [Luck Cycle theme]
-- Current Period Strategy:
-  * Current Status: [favorable period or challenging period]
-  * Recommended Strategy: [specific actionable advice]
-- Luck Cycle Summary: [overall assessment of luck cycles]
+输出格式：
+- 大运列表：
+  * 年龄区间：大运干支、对应十神、喜忌判断、与原局互动。
+- 当前阶段：
+  * 当前年龄。
+  * 当前大运。
+  * 阶段主题。
+  * 喜忌判断及理由。
+- 人生阶段映射：
+  * 年龄区间：传统阶段、心理阶段、阶段主题。
+- 当前阶段策略：
+  * 当前状态。
+  * 推荐策略。
+  * 需要谨慎的方向。
+- 大运总结：总体评估和依据等级。
 
-Provide a detailed analysis with psychological translations for each life stage.
+请输出详细、中文化、克制的大运分析。
 """
 
         response = llm.invoke(prompt)
-        luck_cycle_report = f"Luck Cycle Analyst: {response.content}"
+        luck_cycle_report = f"大运分析师：{response.content}"
 
         return {"luck_cycle_report": luck_cycle_report}
 
