@@ -1,189 +1,83 @@
-# Bazi Trading Agents - 八字分析多智能体框架
+# 观己 · Bazi Trading Agents
 
-一个基于TradingAgents架构的八字（四柱）分析多智能体框架，结合传统命理学与现代心理学。
+一个基于 Streamlit 和 LangGraph 的八字文化解读与自我观察工具。用户注册后填写出生信息、选择关注主题，并使用**自己的模型服务商 API Key**生成报告。报告提供传统文化与心理学两个视角，以及可供参考的行动建议。
 
-## 特性
+> 当前仓库提供可运行的代码，**尚未部署公开网站**。GitHub 仓库页面不能直接运行需要 Python 后端和模型 API 的应用。
 
-- **多智能体架构**: 9个专业智能体协同工作
-- **传统+现代**: 传统命理智慧与现代心理学翻译
-- **辩论机制**: 传统命理师与心理学分析师的深度对话
-- **记忆系统**: 智能体可以从历史分析中学习
-- **可扩展**: 易于添加新的分析维度
+![观己欢迎页](docs/screenshots/welcome.jpeg)
 
-## 智能体架构
+<details>
+<summary>查看更多页面截图</summary>
 
-### 分析阶段
-1. **命盘计算师** (Chart Calculator) - 四柱排盘 + 大运计算
-2. **日主分析师** (Day Master Analyst) - 日主强弱分析
-3. **十神分析师** (Ten Gods Analyst) - 十神分布与组合效应
-4. **格局分析师** (Pattern Analyst) - 格局判断与高低评估
-5. **用神分析师** (Useful God Analyst) - 四法取用（扶抑/调候/通关/病药）
-6. **大运分析师** (Luck Cycle Analyst) - 大运趋势与人生阶段
+登录页：
 
-### 辩论阶段
-7. **传统命理师** (Traditional Analyst) - 传统命理视角
-8. **心理学分析师** (Psychology Analyst) - 现代心理学视角
+![登录页](docs/screenshots/login.jpeg)
 
-### 综合阶段
-9. **综合分析师** (Comprehensive Analyst) - 最终综合分析
+关注主题：
 
-## 安装
+![关注主题](docs/screenshots/topics.jpeg)
 
-```bash
-cd ~/projects/bazi-trading-agents
+</details>
 
-# 安装依赖
+## 目前可以做什么
+
+- **分步填写**：出生日期、时间、地点、历法及补充说明；选择性格、职业、关系、压力等主题，也可提出自定义问题。
+- **多智能体分析**：LangGraph 串联命盘、日主、十神、格局、用神、大运、传统视角、心理学视角和综合分析环节。
+- **查看报告**：报告概览、传统与心理学双视角、行动建议和反馈。
+- **自带 API Key**：支持硅基流动、OpenAI、Anthropic；服务商和模型由应用预设，用户在每次分析时输入自己的 Key。
+- **账号与记录隔离**：登录后只显示当前账号的记录。分析记录默认关闭；用户主动勾选后才保存本次出生资料与结果。
+- **下载报告**：普通用户可下载简版 Markdown、Word、PDF；管理员另有专业版和 JSON 导出。
+- **基础限流**：单账号每小时最多 6 次，单进程每小时最多 60 次，最多同时处理 3 次分析。
+
+## 本地启动
+
+建议使用 Python 虚拟环境。已经创建 `bazi-trading-agents` Conda 环境的用户，在 PowerShell 中运行：
+
+```powershell
+cd E:\NSSC\findwork\code\bazi-trading-agents
+conda activate bazi-trading-agents
 pip install -r requirements.txt
-
-# 或使用虚拟环境
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# venv\Scripts\activate  # Windows
-pip install -r requirements.txt
+streamlit run web_app.py
 ```
 
-## 使用方法
+也可以先克隆本仓库，再进入克隆后的目录运行后三条命令：
 
-### 基本使用
-
-```python
-from bazi_graph import BaziAnalysisGraph
-
-# 初始化分析图
-graph = BaziAnalysisGraph(
-    llm_provider="siliconflow",
-    llm_model="deepseek-ai/DeepSeek-V3",
-    base_url="https://api.siliconflow.cn/v1",
-    debug=True
-)
-
-# 运行分析
-birth_info = "1990年9月5日8:00，男，农历"
-final_state, final_analysis = graph.analyze(birth_info)
-
-# 输出结果
-print(final_analysis)
+```powershell
+git clone https://github.com/Mengyaolv/bazi-trading-agents.git
+cd bazi-trading-agents
 ```
 
-### 运行测试
+终端显示 `Local URL` 后，在浏览器打开该地址，通常是 `http://localhost:8501`。首次使用先注册账号；生成分析前选择服务商并输入该服务商的有效 API Key。停止服务时在终端按 `Ctrl+C`。
 
-```bash
-cd ~/projects/bazi-trading-agents
-python test_bazi_analysis.py
-```
+网页模式无需把自己的 API Key 写入 `.env`。如需调整运行参数，可参考 [`.env.example`](.env.example)；**不要提交 `.env`、真实 Key、`data/`、`results/` 或 `memory/` 中的私人内容**。
 
-## 配置选项
+## 使用流程
 
-### LLM提供商支持
+1. 注册或登录。
+2. 填写出生信息，选择关注主题。
+3. 确认资料，选择模型服务商并输入自己的 API Key。按需勾选“允许记录本次分析结果”。
+4. 查看报告概览、双视角分析及行动建议，并下载报告。
 
-- **SiliconFlow**: `llm_provider="siliconflow"`
-- **OpenAI**: `llm_provider="openai"`
-- **Anthropic**: `llm_provider="anthropic"`
-
-### 配置参数
-
-```python
-config = {
-    "memory_dir": "./memory",           # 记忆存储目录
-    "results_dir": "./results",         # 结果存储目录
-    "max_debate_rounds": 3,             # 最大辩论轮数
-}
-
-graph = BaziAnalysisGraph(
-    config=config,
-    llm_provider="siliconflow",
-    llm_model="deepseek-ai/DeepSeek-V3",
-    base_url="https://api.siliconflow.cn/v1"
-)
-```
-
-## 输出格式
-
-分析结果包含以下部分：
-
-1. **出生信息** - 原始输入信息
-2. **核心人格** - 日主+主导十神，MBTI/大五人格翻译
-3. **优势与成长路径** - 基于用神的成长建议
-4. **阴影面与整合** - 基于忌神的阴影整合
-5. **当前人生阶段** - 基于大运的当前状态
-6. **传统命理智慧** - 传统命理视角
-7. **现代心理学翻译** - 心理学框架解读
-8. **成长建议** - 具体可操作的建议
-9. **伦理说明** - 参考工具声明
-
-## 伦理边界
-
-### 能说的
-- 人格特质和行为倾向
-- 优势和成长方向
-- 人生阶段的可能主题
-- "倾向"和"可能性"（不是"注定"）
-
-### 不能说的
-- 具体的死亡、灾祸预测
-- 绝对化的判断（"你一定会..."）
-- 婚姻/感情的对错判断
-- 替用户做人生重大决定
-
-### 表达原则
-1. 始终用"倾向"而非"注定"
-2. 强调人的主观能动性
-3. 八字是参考，不是命运判决书
-4. 心理学翻译只是帮助理解的工具
-5. 遇到严重心理问题，建议寻求专业心理咨询
+API Key 会通过应用服务器发送给所选模型服务商，用于当前分析；应用不将 Key 写入分析记录。出生资料和相关问题也会发送给模型服务商。若选择保存记录，服务器会保存出生资料与分析结果；账号数据保存在 `data/users.json`。请只在信任的服务实例上填写资料与 Key。
 
 ## 项目结构
 
-```
-bazi-trading-agents/
-├── bazi_agents/              # 智能体实现
-│   ├── __init__.py
-│   ├── chart_calculator.py
-│   ├── day_master_analyst.py
-│   ├── ten_gods_analyst.py
-│   ├── pattern_analyst.py
-│   ├── useful_god_analyst.py
-│   ├── luck_cycle_analyst.py
-│   ├── traditional_analyst.py
-│   ├── psychology_analyst.py
-│   └── comprehensive_analyst.py
-├── bazi_graph/               # 图编排
-│   ├── __init__.py
-│   └── bazi_analysis_graph.py
-├── utils/                    # 工具类
-│   ├── __init__.py
-│   ├── bazi_states.py
-│   └── memory.py
-├── memory/                   # 记忆存储
-├── results/                  # 分析结果
-├── __init__.py
-├── requirements.txt
-├── test_bazi_analysis.py
-└── README.md
+```text
+web_app.py             Streamlit 网页入口
+bazi_graph/             LangGraph 分析流程
+bazi_agents/            各分析智能体
+utils/                  登录、访问限制、导出、记录与质量检查等工具
+prompts/                分析提示词
+docs/screenshots/       README 页面截图
+PUBLIC_DEPLOYMENT.md    公开部署说明
 ```
 
-## 技术栈
+## 公开部署说明
 
-- **LangChain**: LLM编排框架
-- **LangGraph**: 多智能体图编排
-- **OpenAI/Anthropic API**: LLM提供商
-- **SiliconFlow**: 国内LLM提供商
+当前仓库上传到 GitHub 后，访客只能查看代码。要提供可访问的网站，需要另行部署一个能持续运行 Python 的服务，并用 HTTPS 对外提供访问。部署步骤和数据持久化要求见 [`PUBLIC_DEPLOYMENT.md`](PUBLIC_DEPLOYMENT.md)。`PUBLIC_MODE=1` 用于公开环境；`data/users.json` 需要持久化，只有在允许保留分析记录时才需要持久化 `results/`。
 
-## 灵感来源
+## 使用边界与来源
 
-本框架灵感来自：
-- [TradingAgents](https://github.com/TauricResearch/TradingAgents) - 多智能体金融交易框架
-- 传统命理学经典：《渊海子平》《三命通会》《滴天髓》《子平真诠》《穷通宝鉴》《神峰通考》
-- 现代心理学：Carl Jung、Big Five、MBTI、Erikson、积极心理学
+当前“四柱排盘”环节由大模型生成，**不是经过独立历法程序校验的确定性计算**，可能出现排盘或解读错误。所有内容仅供文化解读与自我观察参考，不构成心理诊断、医疗、法律、投资或重大人生决策建议。
 
-## 许可证
-
-MIT License
-
-## 作者
-
-Wu Zhongpei (吴忠佩)
-
-## 版本
-
-0.1.0 - 初始版本
+本项目基于 [brucewu905/bazi-trading-agents](https://github.com/brucewu905/bazi-trading-agents) 改造；原框架作者为 Wu Zhongpei。请保留原项目来源，并遵守上游许可与署名要求。
